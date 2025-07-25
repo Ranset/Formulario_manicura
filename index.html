@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Informativo de Cliente</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font from Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top for longer content */
+            min-height: 100vh;
+            padding: 2rem 1rem; /* Add padding for mobile */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 800px; /* Max width for larger screens */
+            width: 100%;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            color: #374151;
+            transition: border-color 0.2s;
+        }
+        .form-group input[type="text"]:focus,
+        .form-group input[type="tel"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2563eb; /* Blue focus ring */
+        }
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 0; /* Override default margin */
+        }
+        .radio-group input[type="radio"],
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: #2563eb; /* Blue checkbox/radio */
+        }
+        .btn-primary {
+            background-color: #2563eb;
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-secondary {
+            background-color: #6b7280;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        .message-box {
+            background-color: #dbeafe;
+            color: #1e40af;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            border: 1px solid #93c5fd;
+        }
+        .hidden {
+            display: none;
+        }
+        #signatureCanvas {
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background-color: #f9fafb;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Formulario Informativo de Cliente</h1>
+
+        <div id="messageBox" class="message-box hidden">
+            <p class="font-semibold">Información Importante:</p>
+            <p class="mt-2">El PDF se generará y se descargará en tu dispositivo. Luego, deberás enviarlo como adjunto al correo electrónico <a href="mailto:yo@mail.com" class="text-blue-600 underline">yo@mail.com</a></p>
+        </div>
+
+        <form id="surveyForm" class="space-y-6 mt-6">
+            <!-- Nombre completo del cliente -->
+            <div class="form-group">
+                <label for="clientFullName" class="text-gray-700">Nombre completo del cliente:</label>
+                <input type="text" id="clientFullName" name="clientFullName" class="mt-1" placeholder="Nombre completo" required>
+            </div>
+
+            <!-- Número de teléfono -->
+            <div class="form-group">
+                <label for="phoneNumber" class="text-gray-700">Número de teléfono:</label>
+                <input type="tel" id="phoneNumber" name="phoneNumber" class="mt-1" placeholder="Ej: 123-456-7890" required>
+            </div>
+
+            <!-- INFORMACIÓN MÉDICA: ¿Está actualmente en algún tratamiento o bajo atención médica? -->
+            <div class="form-group">
+                <label class="text-gray-700">INFORMACIÓN MÉDICA: ¿Está actualmente en algún tratamiento o bajo atención médica?</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="medicalTreatment" value="Sí" required>
+                        Sí
+                    </label>
+                    <label>
+                        <input type="radio" name="medicalTreatment" value="No">
+                        No
+                    </label>
+                </div>
+            </div>
+
+            <!-- Si su respuesta anterior es si por favor explique (conditionally visible) -->
+            <div class="form-group hidden" id="medicalExplanationGroup">
+                <label for="medicalExplanation" class="text-gray-700">Si su respuesta anterior es sí, por favor explique:</label>
+                <textarea id="medicalExplanation" name="medicalExplanation" rows="3" class="mt-1" placeholder="Detalle su tratamiento o atención médica..."></textarea>
+            </div>
+
+            <!-- PREGUNTAS DE SALUD: por favor marque si padece alguna de las siguientes enfermedades: -->
+            <div class="form-group">
+                <label class="text-gray-700">PREGUNTAS DE SALUD: Por favor, marque si padece alguna de las siguientes enfermedades:</label>
+                <div class="checkbox-group grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <label><input type="checkbox" name="healthConditions" value="Cáncer"> Cáncer</label>
+                    <label><input type="checkbox" name="healthConditions" value="Diabetes"> Diabetes</label>
+                    <label><input type="checkbox" name="healthConditions" value="HIV"> HIV</label>
+                    <label><input type="checkbox" name="healthConditions" value="Alta presión"> Alta presión</label>
+                    <label><input type="checkbox" name="healthConditions" value="Sífilis"> Sífilis</label>
+                    <label><input type="checkbox" name="healthConditions" value="Osteoporosis"> Osteoporosis</label>
+                    <label><input type="checkbox" name="healthConditions" value="Fibromialgia"> Fibromialgia</label>
+                    <label><input type="checkbox" name="healthConditions" value="Dolor extremo crónico"> Dolor extremo crónico</label>
+                    <label><input type="checkbox" name="healthConditions" value="Hepatitis B"> Hepatitis B</label>
+                    <label><input type="checkbox" name="healthConditions" value="Quimioterapia"> Quimioterapia</label>
+                </div>
+            </div>
+
+            <!-- Si respondió positivo alguna de las enfermedades anteriores, ¿está bajo tratamiento? -->
+            <div class="form-group hidden" id="treatmentStatusGroup">
+                <label class="text-gray-700">Si respondió positivo alguna de las enfermedades anteriores, ¿está bajo tratamiento?</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="underTreatment" value="Sí">
+                        Sí
+                    </label>
+                    <label>
+                        <input type="radio" name="underTreatment" value="No">
+                        No
+                    </label>
+                </div>
+            </div>
+
+            <!-- ¿Tiene alguna alergia? -->
+            <div class="form-group">
+                <label for="allergies" class="text-gray-700">¿Tiene alguna alergia?</label>
+                <textarea id="allergies" name="allergies" rows="3" class="mt-1" placeholder="Detalle sus alergias..."></textarea>
+            </div>
+
+            <!-- ¿Es alérgica a algún cosmético? -->
+            <div class="form-group">
+                <label for="cosmeticAllergies" class="text-gray-700">¿Es alérgica a algún cosmético?</label>
+                <textarea id="cosmeticAllergies" name="cosmeticAllergies" rows="3" class="mt-1" placeholder="Detalle alergias a cosméticos..."></textarea>
+            </div>
+
+            <!-- ¿Está usted embarazada? -->
+            <div class="form-group">
+                <label class="text-gray-700">¿Está usted embarazada?</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="isPregnant" value="Sí" required>
+                        Sí
+                    </label>
+                    <label>
+                        <input type="radio" name="isPregnant" value="No">
+                        No
+                    </label>
+                </div>
+            </div>
+
+            <!-- Firma del cliente -->
+            <div class="form-group">
+                <label class="text-gray-700">Firma del cliente:</label>
+                <canvas id="signatureCanvas" width="400" height="150" class="mt-1 w-full"></canvas>
+                <button type="button" id="clearSignatureBtn" class="btn-secondary mt-2">Borrar Firma</button>
+            </div>
+
+            <button type="submit" class="btn-primary w-full">Generar PDF y Enviar</button>
+        </form>
+    </div>
+
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Ensure the jsPDF library is loaded
+        const { jsPDF } = window.jspdf;
+
+        // Signature Canvas setup
+        const signatureCanvas = document.getElementById('signatureCanvas');
+        const signatureCtx = signatureCanvas.getContext('2d');
+        const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Set initial canvas background to white
+        function clearCanvas() {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            signatureCtx.fillStyle = '#f9fafb'; // Match background color
+            signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        }
+
+        clearCanvas(); // Clear canvas on load
+
+        // Function to get accurate mouse/touch coordinates relative to the canvas's internal resolution
+        function getCoordinates(event) {
+            const rect = signatureCanvas.getBoundingClientRect(); // Get the size and position of the canvas on the page
+            let clientX, clientY;
+
+            // Check if it's a touch event or a mouse event
+            if (event.touches && event.touches.length > 0) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            // Calculate coordinates relative to the canvas element
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            // Scale coordinates to match the canvas's internal resolution (width/height attributes)
+            // This is crucial if the canvas is scaled by CSS
+            const scaleX = signatureCanvas.width / rect.width;
+            const scaleY = signatureCanvas.height / rect.height;
+
+            return {
+                x: x * scaleX,
+                y: y * scaleY
+            };
+        }
+
+        // Drawing functions
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCoordinates(e);
+
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(lastX, lastY);
+            signatureCtx.lineTo(coords.x, coords.y);
+            signatureCtx.strokeStyle = '#000000'; // Black ink
+            signatureCtx.lineWidth = 2;
+            signatureCtx.lineCap = 'round';
+            signatureCtx.stroke();
+            [lastX, lastY] = [coords.x, coords.y];
+        }
+
+        signatureCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            [lastX, lastY] = [coords.x, coords.y];
+        });
+
+        signatureCanvas.addEventListener('mousemove', draw);
+        signatureCanvas.addEventListener('mouseup', () => isDrawing = false);
+        signatureCanvas.addEventListener('mouseout', () => isDrawing = false); // Stop drawing if mouse leaves canvas
+
+        // Touch events for mobile
+        signatureCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            [lastX, lastY] = [coords.x, coords.y];
+        });
+
+        signatureCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            draw(e);
+        });
+
+        signatureCanvas.addEventListener('touchend', () => isDrawing = false);
+
+        // Clear signature button event
+        clearSignatureBtn.addEventListener('click', clearCanvas);
+
+        // Conditional visibility for medical explanation
+        const medicalTreatmentRadios = document.querySelectorAll('input[name="medicalTreatment"]');
+        const medicalExplanationGroup = document.getElementById('medicalExplanationGroup');
+        const medicalExplanationTextarea = document.getElementById('medicalExplanation');
+
+        medicalTreatmentRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (document.querySelector('input[name="medicalTreatment"]:checked')?.value === 'Sí') {
+                    medicalExplanationGroup.classList.remove('hidden');
+                    medicalExplanationTextarea.setAttribute('required', 'true');
+                } else {
+                    medicalExplanationGroup.classList.add('hidden');
+                    medicalExplanationTextarea.removeAttribute('required');
+                    medicalExplanationTextarea.value = ''; // Clear content if hidden
+                }
+            });
+        });
+
+        // Conditional visibility for treatment status if health conditions are marked
+        const healthConditionsCheckboxes = document.querySelectorAll('input[name="healthConditions"]');
+        const treatmentStatusGroup = document.getElementById('treatmentStatusGroup');
+        const underTreatmentRadios = document.querySelectorAll('input[name="underTreatment"]');
+
+        healthConditionsCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const anyChecked = Array.from(healthConditionsCheckboxes).some(cb => cb.checked);
+                if (anyChecked) {
+                    treatmentStatusGroup.classList.remove('hidden');
+                    // Make radio buttons required if group is visible
+                    underTreatmentRadios.forEach(radio => radio.setAttribute('required', 'true'));
+                } else {
+                    treatmentStatusGroup.classList.add('hidden');
+                    // Remove required attribute and uncheck if group is hidden
+                    underTreatmentRadios.forEach(radio => {
+                        radio.removeAttribute('required');
+                        radio.checked = false;
+                    });
+                }
+            });
+        });
+
+
+        document.getElementById('surveyForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Show the message box
+            document.getElementById('messageBox').classList.remove('hidden');
+
+            // Scroll to top of the page smoothly
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Collect form data
+            const clientFullName = document.getElementById('clientFullName').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const medicalTreatment = document.querySelector('input[name="medicalTreatment"]:checked')?.value || 'No especificado';
+            const medicalExplanation = document.getElementById('medicalExplanation').value;
+
+            const selectedHealthConditions = Array.from(document.querySelectorAll('input[name="healthConditions"]:checked'))
+                                                .map(checkbox => checkbox.value)
+                                                .join(', ');
+
+            const underTreatment = document.querySelector('input[name="underTreatment"]:checked')?.value || 'No especificado';
+            const allergies = document.getElementById('allergies').value;
+            const cosmeticAllergies = document.getElementById('cosmeticAllergies').value;
+            const isPregnant = document.querySelector('input[name="isPregnant"]:checked')?.value || 'No especificado';
+
+            // Get signature image data from canvas
+            const signatureImageData = signatureCanvas.toDataURL('image/png'); // Get base64 image data
+
+            // Create a new jsPDF instance
+            const doc = new jsPDF();
+
+            // Set font and size for title
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.text('Formulario Informativo de Cliente', 105, 15, { align: 'center' });
+
+            // Set font and size for content
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+
+            let yOffset = 30; // Initial Y position for content
+
+            // Helper function to add text with wrapping
+            const addText = (label, value) => {
+                doc.setFont('helvetica', 'bold');
+                doc.text(label, 20, yOffset);
+                yOffset += 5; // Move down for value
+
+                doc.setFont('helvetica', 'normal');
+                const splitText = doc.splitTextToSize(value || 'No especificado', 175); // Max width for text
+                doc.text(splitText, 20, yOffset);
+                yOffset += (splitText.length * 5) + 8; // Adjust Y for wrapped text and add spacing
+            };
+
+            // Add form data to PDF
+            addText('Nombre completo del cliente:', clientFullName);
+            addText('Número de teléfono:', phoneNumber);
+            addText('INFORMACIÓN MÉDICA: ¿Está actualmente en algún tratamiento o bajo atención médica?:', medicalTreatment);
+            if (medicalTreatment === 'Sí') {
+                addText('Explicación del tratamiento médico:', medicalExplanation || 'No proporcionado');
+            }
+            addText('PREGUNTAS DE SALUD: Enfermedades padecidas:', selectedHealthConditions || 'Ninguna');
+            if (selectedHealthConditions) {
+            addText('¿Está bajo tratamiento por alguna de estas enfermedades?:', underTreatment);
+            }
+            addText('¿Tiene alguna alergia?:', allergies || 'No');
+            addText('¿Es alérgica a algún cosmético?:', cosmeticAllergies || 'No');
+            addText('¿Está usted embarazada?:', isPregnant);
+
+            // Add notes for PDF
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(9);
+            yOffset += 10; // Add some space before notes
+            const note1 = 'Sí se llega a presentar algún cambio de salud, por favor de informar a su manicurista inmediatamente.';
+            const note2 = 'Si se realiza una pedicura, por favor no debe rasurarse ni depilarse 48 horas antes del procedimiento para que su piel esté sana y evitar irritaciones al usar exfoliantes o recibir un masaje.';
+
+            let splitNote1 = doc.splitTextToSize(note1, 175);
+            doc.text(splitNote1, 20, yOffset);
+            yOffset += (splitNote1.length * 4.5) + 5;
+
+            let splitNote2 = doc.splitTextToSize(note2, 175);
+            doc.text(splitNote2, 20, yOffset);
+            yOffset += (splitNote2.length * 4.5) + 10; // Add more space after notes before signature
+
+            // Add signature image to PDF (last element)
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.text('Firma del cliente:', 20, yOffset);
+            yOffset += 5; // Move down for image
+
+            // Add image, scaling it down if necessary
+            const imgWidth = 70; // Desired width in PDF
+            const imgHeight = (signatureCanvas.height * imgWidth) / signatureCanvas.width; // Maintain aspect ratio
+            doc.addImage(signatureImageData, 'PNG', 20, yOffset, imgWidth, imgHeight);
+            yOffset += imgHeight + 10; // Adjust Y for image height and add spacing
+
+
+            // Save the PDF
+            doc.save('formulario_salud_cliente.pdf');
+
+            // Reset the form after submission and clear canvas
+            this.reset();
+            clearCanvas();
+        });
+    </script>
+</body>
+</html>
