@@ -96,6 +96,20 @@
         .btn-secondary:hover {
             background-color: #4b5563;
         }
+        .btn-cancel {
+            background-color: #dc2626;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .btn-cancel:hover {
+            background-color: #b91c1c;
+        }
         .message-box {
             background-color: #dbeafe;
             color: #1e40af;
@@ -112,6 +126,37 @@
             border-radius: 0.5rem;
             background-color: #f9fafb;
             cursor: crosshair;
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 500px;
+            width: 90%;
+            margin: 1rem;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: flex-end;
         }
     </style>
 </head>
@@ -219,15 +264,6 @@
                 </div>
             </div>
 
-            <!-- Información sobre Lámparas UV/LED -->
-            <div class="form-group">
-                <label for="uvLedInfo" class="text-gray-700">Información sobre Lámparas UV/LED:</label>
-                <p class="text-gray-700 italic text-sm">En nuestra manicura con gel utilizamos lámparas UV o LED únicamente para curar el esmalte en gel. Queremos que te sientas completamente tranquila/o con el procedimiento, así que te explico cómo funcionan y qué tan seguras son:</p>
-                <p class="text-gray-700 italic text-sm mt-1">La radiación emitida durante una manicura es muy baja y es inferior a lo que recibimos diariamente del sol.</p>
-                <p class="text-gray-700 italic text-sm mt-1">La FDA las considera de bajo riesgo cuando se usan según las indicaciones del fabricante.</p>
-                <p class="text-gray-700 italic text-sm mt-1">Por ejemplo, se necesitarían 250 años de manicuras semanales para igualar la exposición de una sola sesión con una lámpara UV utilizada en terapias médicas (aprobada por la FDA).</p>
-            </div>
-
             <!-- Firma del cliente -->
             <div class="form-group">
                 <label class="text-gray-700">Firma del cliente:</label>
@@ -239,11 +275,31 @@
         </form>
     </div>
 
+    <!-- Modal -->
+    <div id="uvLedModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Información sobre Lámparas UV/LED</h2>
+            <p class="text-gray-600 text-sm leading-relaxed">
+                En nuestra manicura con gel utilizamos lámparas UV o LED únicamente para curar el esmalte en gel. 
+                Queremos que te sientas completamente tranquila/o con el procedimiento, así que te explico cómo funcionan y qué tan seguras son.
+            </p>
+            <div class="modal-buttons">
+                <button type="button" id="cancelModal" class="btn-cancel">Cancelar</button>
+                <button type="button" id="acceptModal" class="btn-primary">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- jsPDF CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // Ensure the jsPDF library is loaded
         const { jsPDF } = window.jspdf;
+
+        // Modal elements
+        const uvLedModal = document.getElementById('uvLedModal');
+        const acceptModalBtn = document.getElementById('acceptModal');
+        const cancelModalBtn = document.getElementById('cancelModal');
 
         // Signature Canvas setup
         const signatureCanvas = document.getElementById('signatureCanvas');
@@ -376,10 +432,24 @@
             });
         });
 
+        // Modal event handlers
+        cancelModalBtn.addEventListener('click', () => {
+            uvLedModal.classList.add('hidden');
+        });
 
-        document.getElementById('surveyForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent default form submission
+        acceptModalBtn.addEventListener('click', () => {
+            uvLedModal.classList.add('hidden');
+            generatePDF(); // Generate PDF after accepting
+        });
 
+        // Close modal when clicking outside of it
+        uvLedModal.addEventListener('click', (e) => {
+            if (e.target === uvLedModal) {
+                uvLedModal.classList.add('hidden');
+            }
+        });
+
+        function generatePDF() {
             // Show the message box
             document.getElementById('messageBox').classList.remove('hidden');
 
@@ -411,12 +481,6 @@
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(20);
             doc.text('Formulario Informativo de Cliente', 105, 15, { align: 'center' });
-
-            // Agregar fecha actual debajo del título
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(11);
-            const fechaActual = new Date().toLocaleDateString('es-ES');
-            doc.text(`Fecha: ${fechaActual}`, 20, 23);
 
             // Set font and size for content
             doc.setFont('helvetica', 'normal');
@@ -478,13 +542,19 @@
             doc.addImage(signatureImageData, 'PNG', 20, yOffset, imgWidth, imgHeight);
             yOffset += imgHeight + 10; // Adjust Y for image height and add spacing
 
-
             // Save the PDF
             doc.save('formulario_salud_cliente.pdf');
 
             // Reset the form after submission and clear canvas
-            this.reset();
+            document.getElementById('surveyForm').reset();
             clearCanvas();
+        }
+
+        document.getElementById('surveyForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Show the modal instead of directly generating PDF
+            uvLedModal.classList.remove('hidden');
         });
     </script>
 </body>
