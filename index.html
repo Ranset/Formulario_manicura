@@ -127,6 +127,13 @@
         </div>
 
         <form id="surveyForm" class="space-y-6 mt-6">
+
+            <!-- Fecha de la cita -->
+            <div class="form-group">
+                <label for="appointmentDate" class="text-gray-700">Fecha de la cita:</label>
+                <input type="date" id="appointmentDate" name="appointmentDate" class="mt-1" required>
+            </div>
+
             <!-- Nombre completo del cliente -->
             <div class="form-group">
                 <label for="clientFullName" class="text-gray-700">Nombre completo del cliente:</label>
@@ -400,6 +407,9 @@
             const allergies = document.getElementById('allergies').value;
             const cosmeticAllergies = document.getElementById('cosmeticAllergies').value;
             const isPregnant = document.querySelector('input[name="isPregnant"]:checked')?.value || 'No especificado';
+            
+            //Get appointment Date
+            const appointmentDate = document.getElementById('appointmentDate').value;
 
             // Get signature image data from canvas
             const signatureImageData = signatureCanvas.toDataURL('image/png'); // Get base64 image data
@@ -413,10 +423,10 @@
             doc.text('Formulario Informativo de Cliente', 105, 15, { align: 'center' });
 
             // Agregar fecha actual debajo del título
-            doc.setFont('helvetica', 'normal');
+            /* doc.setFont('helvetica', 'normal');
             doc.setFontSize(11);
             const fechaActual = new Date().toLocaleDateString('es-ES');
-            doc.text(`Fecha: ${fechaActual}`, 20, 23);
+            doc.text(`Fecha: ${fechaActual}`, 20, 23); */
 
             // Set font and size for content
             doc.setFont('helvetica', 'normal');
@@ -437,6 +447,7 @@
             };
 
             // Add form data to PDF
+            addText('Fecha de la cita:', appointmentDate);
             addText('Nombre completo del cliente:', clientFullName);
             addText('Número de teléfono:', phoneNumber);
             addText('INFORMACIÓN MÉDICA: ¿Está actualmente en algún tratamiento o bajo atención médica?:', medicalTreatment);
